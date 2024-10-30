@@ -24,12 +24,12 @@ def read_chunks(input_file):
 
         # Read the file until no more chunks are found
         while True:
-            chunk = f_in.read(CHUNK_SIZE_BYTES)
-            if not chunk:
+            chunk_header = f_in.read(CHUNK_SIZE_BYTES)
+            if not chunk_header:
                 break
 
             # Convert the header to an integer
-            chunk_size = int.from_bytes(chunk, 'big')
+            chunk_size = int.from_bytes(chunk_header, 'big')
 
             # Read the compressed chunk data for chunk_size bytes
             chunk_data = f_in.read(chunk_size)
