@@ -40,7 +40,7 @@ def read_chunks(input_file):
             # Increment the chunk index for the next chunk
             chunk_index += 1
 
-def decompress_in_parallel(input_file, output_file):
+def gcsv_decompress(input_file, output_file):
     """
     Decompress the GCSV file using multiple threads to speed up the process.
     Ensure the decompressed chunks are written sequentially to the output file.
@@ -80,4 +80,4 @@ if __name__ == "__main__":
     parser.add_argument("output_file", help="Path to the output CSV file. (i.e bitcoin.csv)")
     args = parser.parse_args()
 
-    decompress_in_parallel(args.input_file, args.output_file)
+    gcsv_decompress(args.input_file, args.output_file)
