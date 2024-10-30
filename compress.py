@@ -10,7 +10,7 @@ def compress_chunk(chunk):
     return zlib.compress(chunk)
 
 # We divide the file in chunks and then divide those chunks between threads to compress individually
-def split_and_compress(input_file, output_file):
+def gcsv_compress(input_file, output_file):
     """
     Split the input file into 1 MB chunks, compress each chunk using multiple threads,
     and write the compressed chunks sequentially to the output file.
@@ -46,4 +46,4 @@ if __name__ == "__main__":
     parser.add_argument("output_file", help="Path to the output compressed GCSV file. (i.e bitcoin.gcsv)")
     args = parser.parse_args()
 
-    split_and_compress(args.input_file, args.output_file)
+    gcsv_compress(args.input_file, args.output_file)
