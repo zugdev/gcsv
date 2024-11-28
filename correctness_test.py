@@ -14,7 +14,7 @@ def main():
     decompressed_file = input_file + '_decompressed.csv'
 
     # Compress the input file
-    gcsv_compress(input_file, compressed_file)
+    gcsv_compress(input_file, compressed_file, 10, 16)
 
     # Decompress the file
     gcsv_decompress(compressed_file, decompressed_file)
