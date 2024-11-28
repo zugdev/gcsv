@@ -8,7 +8,7 @@ def compress_chunk(chunk):
     return zlib.compress(chunk)
 
 # We divide the file in chunks and then divide those chunks between threads to compress individually
-def gcsv_compress(input_file, output_file, chunk_size=1):
+def gcsv_compress(input_file, output_file, chunk_size=1, max_threads=10):
     """
     Split the input file into 1 MB chunks, compress each chunk using multiple threads,
     and write the compressed chunks sequentially to the output file.
@@ -43,6 +43,7 @@ if __name__ == "__main__":
     parser.add_argument("input_file", help="Path to the input CSV file. (i.e bitcoin.csv)")
     parser.add_argument("output_file", help="Path to the output compressed GCSV file. (i.e bitcoin.gcsv)")
     parser.add_argument("--chunk-size", type=int, default=1, help="Size of the chunks in megabytes (Mbs) to read from the input file (i.e 1)")
+    parser.add_argument("--max-threads", type=int, default=10, help="Maximum number of threads to use for compression (i.e 10)")
     args = parser.parse_args()
 
-    gcsv_compress(args.input_file, args.output_file)
+    gcsv_compress(args.input_file, args.output_file, args.chunk_size, args.max_threads)
