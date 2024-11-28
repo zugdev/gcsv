@@ -49,22 +49,19 @@ class GCSVReader:
         """Close the underlying stream."""
         self.decompressed_stream.close()
 
-
 class GCSVWriter:
     """Write data to a GCSV file with compression."""
     def __init__(self, gcsv_file: str):
         self.gcsv_file = gcsv_file
         self.buffer = io.StringIO()
 
-    # see context manager protocol
     def __enter__(self):
-        """Open the GCSV file and prepare for reading."""
-        self.decompressed_stream = io.StringIO(self._decompress_gcsv())
+        """Prepare the writer."""
+        self.buffer = io.StringIO()
         return self
 
-    # see context manager protocol
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Close the stream on exit."""
+        """Flush and close on exit."""
         self.close()
 
     def write_row(self, row: List[str]):
@@ -83,6 +80,7 @@ class GCSVWriter:
         with open(self.gcsv_file, 'ab') as f:
             f.write(len(compressed_data).to_bytes(4, 'big'))
             f.write(compressed_data)
+        self.buffer = io.StringIO()  # Reset the buffer
 
     def close(self):
         """Flush the buffer and close the writer."""
