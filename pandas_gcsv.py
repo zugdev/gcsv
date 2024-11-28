@@ -15,30 +15,44 @@ def read_gcsv(gcsv_file: str, **kwargs) -> pd.DataFrame:
     # Use io.StringIO to simulate a file-like object from the decompressed string
     return pd.read_csv(io.StringIO(decompressed_data), **kwargs)
 
-def _decompress_gcsv_to_memory(gcsv_file: str) -> str:
+def _decompress_gcsv_to_memory(gcsv_file: str, max_threads=4) -> str:
     """
-    Decompress the GCSV file into a string, without writing it to disk.
+    Decompress the GCSV file into a string using multithreading.
     This function reads the compressed chunks and decompresses them in memory.
     """
     decompressed_data = []
 
     with open(gcsv_file, 'rb') as f:
-        while True:
-            size_data = f.read(4)  # Read the chunk header (4 bytes)
-            if not size_data:
-                break  # No more chunks to read
+        with ThreadPoolExecutor(max_workers=max_threads) as executor:
+            futures = []
+            while True:
+                size_data = f.read(4)  # Read the chunk header (4 bytes)
+                if not size_data:
+                    break  # No more chunks to read
 
-            chunk_size = int.from_bytes(size_data, 'big')  # Read the chunk size
-            compressed_chunk = f.read(chunk_size)  # Read the compressed chunk
+                chunk_size = int.from_bytes(size_data, 'big')  # chunk size
+                compressed_chunk = f.read(chunk_size)
 
-            # Decompress the chunk and append to the result
-            decompressed_data.append(zlib.decompress(compressed_chunk).decode('utf-8'))
+                # Submit the decompression task for each chunk
+                futures.append(executor.submit(decompress_chunk, compressed_chunk))
+
+            # Gather the decompressed chunks and combine them
+            for future in futures:
+                decompressed_data.append(future.result())
 
     return ''.join(decompressed_data)
 
+def decompress_chunk(compressed_chunk: bytes) -> str:
+    """
+    Decompress a single chunk of data.
+    :param compressed_chunk: Compressed chunk of data.
+    :return: Decompressed string.
+    """
+    return zlib.decompress(compressed_chunk).decode('utf-8')
+
 def to_gcsv(df: pd.DataFrame, gcsv_file: str, chunk_size=10, max_threads=16, **kwargs):
     """
-    Write a pandas DataFrame to a GCSV file.
+    Write a pandas DataFrame to a GCSV file with compression.
     :param df: pandas DataFrame to write.
     :param gcsv_file: Path to the output GCSV file.
     :param chunk_size: Chunk size in MB for compression.
@@ -55,7 +69,7 @@ def to_gcsv(df: pd.DataFrame, gcsv_file: str, chunk_size=10, max_threads=16, **k
 
 def gcsv_compress_from_memory(csv_data: str, gcsv_file: str, chunk_size=10, max_threads=16):
     """
-    Compress CSV data directly from memory and write to the GCSV file.
+    Compress CSV data directly from memory and write to the GCSV file using multithreading.
     :param csv_data: CSV data as a string.
     :param gcsv_file: Path to the output GCSV file.
     :param chunk_size: Chunk size for compression.
