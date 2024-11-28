@@ -49,7 +49,7 @@ class GCSVReader:
         """Close the underlying stream."""
         self.decompressed_stream.close()
 
-class GCSVWriter:
+class GCSVWritter:
     """Write data to a GCSV file with compression."""
     def __init__(self, gcsv_file: str):
         self.gcsv_file = gcsv_file
