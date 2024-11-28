@@ -3,14 +3,12 @@ import zlib
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-CHUNK_SIZE = 1024 * 1024  # 1 MB chunks
-
 def compress_chunk(chunk):
     """Compress a single chunk of data."""
     return zlib.compress(chunk)
 
 # We divide the file in chunks and then divide those chunks between threads to compress individually
-def gcsv_compress(input_file, output_file):
+def gcsv_compress(input_file, output_file, chunk_size=1):
     """
     Split the input file into 1 MB chunks, compress each chunk using multiple threads,
     and write the compressed chunks sequentially to the output file.
@@ -23,7 +21,7 @@ def gcsv_compress(input_file, output_file):
 
             # Read the input file chunk by chunk until the end of the file
             while True:
-                chunk = f_in.read(CHUNK_SIZE)
+                chunk = f_in.read(chunk_size * 1024 * 1024)
                 if not chunk:
                     break
 
@@ -44,6 +42,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compress a CSV file into a compressed GCSV file.")
     parser.add_argument("input_file", help="Path to the input CSV file. (i.e bitcoin.csv)")
     parser.add_argument("output_file", help="Path to the output compressed GCSV file. (i.e bitcoin.gcsv)")
+    parser.add_argument("--chunk-size", type=int, default=1, help="Size of the chunks in megabytes (Mbs) to read from the input file (i.e 1)")
     args = parser.parse_args()
 
     gcsv_compress(args.input_file, args.output_file)
