@@ -16,26 +16,31 @@ def test_compression(input_file, output_file, chunk_sizes, max_threads_list):
 
     for chunk_size in chunk_sizes:
         for max_threads in max_threads_list:
-            print(f"Testing with chunk_size={chunk_size} MB, max_threads={max_threads}")
+            sum_time=0
+            sum_size=0
+            for i in range(5):
+                print(f"Testing with chunk_size={chunk_size} MB, max_threads={max_threads}")
 
-            # Measure time and file size
-            start_time = time.time()
-            gcsv_compress(input_file, output_file, chunk_size, max_threads)
-            end_time = time.time()
+                # Measure time and file size
+                start_time = time.time()
+                gcsv_compress(input_file, output_file, chunk_size, max_threads)
+                end_time = time.time()
 
-            # Get compressed file size
-            compressed_size = os.path.getsize(output_file)
+                # Get compressed file size
+                compressed_size = os.path.getsize(output_file)
 
+                sum_time+= end_time - start_time
+                sum_size+=compressed_size
+                # Clean up the output file to save space
+                os.remove(output_file)
+            
             # Append results
             results.append({
                 'chunk_size': chunk_size,
                 'max_threads': max_threads,
-                'time_cost': end_time - start_time,
-                'compressed_size': compressed_size
+                'time_cost': (sum_time/5),
+                'compressed_size': (sum_size/5)
             })
-
-            # Clean up the output file to save space
-            os.remove(output_file)
 
     return results
 
