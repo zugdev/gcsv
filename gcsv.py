@@ -1,8 +1,8 @@
-# gcsv.py
 import csv
 import zlib
 import io
-from typing import List, Optional, Iterator
+from typing import List, Iterator
+import pandas as pd
 
 class GCSVReader:
     """Read a compressed GCSV file as if it were a CSV file."""
@@ -10,13 +10,11 @@ class GCSVReader:
         self.gcsv_file = gcsv_file
         self.decompressed_stream = io.StringIO(self._decompress_gcsv())
 
-    # see context manager protocol
     def __enter__(self):
         """Open the GCSV file and prepare for reading."""
         self.decompressed_stream = io.StringIO(self._decompress_gcsv())
         return self
 
-    # see context manager protocol
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Close the stream on exit."""
         self.close()
@@ -86,3 +84,28 @@ class GCSVWritter:
         """Flush the buffer and close the writer."""
         self._compress_and_write()
         self.buffer.close()
+
+
+def read_gcsv(gcsv_file: str, **kwargs) -> "pd.DataFrame":
+    """
+    Read a GCSV file into a pandas DataFrame.
+    :param gcsv_file: Path to the input GCSV file.
+    :param kwargs: Additional arguments passed to pd.DataFrame.
+    :return: pandas DataFrame.
+    """
+    with GCSVReader(gcsv_file) as reader:
+        data = list(reader)  # Read all rows
+    return pd.DataFrame(data[1:], columns=data[0], **kwargs)  # uses the first row as column headers
+
+
+def to_gcsv(df: "pd.DataFrame", gcsv_file: str, **kwargs):
+    """
+    Write a pandas DataFrame to a GCSV file.
+    :param df: pandas DataFrame to write.
+    :param gcsv_file: Path to the output GCSV file.
+    :param kwargs: Additional arguments passed to DataFrame.to_csv.
+    """
+    with GCSVWritter(gcsv_file) as writer:
+        csv_string = df.to_csv(index=False, **kwargs)
+        rows = csv_string.splitlines()
+        writer.write_rows([row.split(",") for row in rows])
