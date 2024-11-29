@@ -3,6 +3,17 @@ import time
 import matplotlib.pyplot as plt
 from compress import gcsv_compress
 
+def wait_for_file_release(file_path, timeout=5):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            with open(file_path, 'r+'):  # Tenta abrir em modo leitura e escrita
+                return  # Arquivo liberado
+        except IOError:
+            time.sleep(0.1)  # Aguarda antes de tentar novamente
+    raise PermissionError(f"File {file_path} is still in use after {timeout} seconds.")
+
+
 def test_compression(input_file, output_file, chunk_sizes, max_threads_list):
     """
     Test different chunk sizes and thread counts to evaluate compression performance and efficiency.
@@ -16,8 +27,8 @@ def test_compression(input_file, output_file, chunk_sizes, max_threads_list):
 
     for chunk_size in chunk_sizes:
         for max_threads in max_threads_list:
-            sum_time=0
-            sum_size=0
+            sum_time = 0
+            sum_size = 0
             for i in range(5):
                 print(f"Testing with chunk_size={chunk_size} MB, max_threads={max_threads}")
 
@@ -29,17 +40,19 @@ def test_compression(input_file, output_file, chunk_sizes, max_threads_list):
                 # Get compressed file size
                 compressed_size = os.path.getsize(output_file)
 
-                sum_time+= end_time - start_time
-                sum_size+=compressed_size
+                sum_time += end_time - start_time
+                sum_size += compressed_size
+
                 # Clean up the output file to save space
+                wait_for_file_release(output_file)
                 os.remove(output_file)
             
             # Append results
             results.append({
                 'chunk_size': chunk_size,
                 'max_threads': max_threads,
-                'time_cost': (sum_time/5),
-                'compressed_size': (sum_size/5)
+                'time_cost': (sum_time / 5),
+                'compressed_size': (sum_size / 5)
             })
 
     return results
@@ -71,7 +84,7 @@ def plot_results(results, input_file_size, input_file_name):
     plt.savefig(f"{plot_dir}/time_vs_chunk_{input_file_name}.png")
     plt.show()
 
-    # Cálculo de aceleração
+    # Speedup calculation
     t1_times = {result['chunk_size']: result['time_cost'] for result in results if result['max_threads'] == 1}
 
     for max_threads in max_threads_list:
@@ -105,8 +118,8 @@ def plot_results(results, input_file_size, input_file_name):
 
 
 if __name__ == "__main__":
-    TEST_FILES = ["mnist.csv", "color_srgb.csv","language.csv"]  # Exemplos
-    OUTPUT_FILE = "compressed.gcsv"  # Ephemeral file
+    TEST_FILES = ["fruit0.csv", "fruit1.csv", "fruits.csv", "mnist.csv"]  # Example files
+    OUTPUT_FILE = "compressed.gcsv"  # Temporary file
     CHUNK_SIZES = [1, 2, 5, 10, 20, 30, 40, 50]  # Test chunk sizes in MB
     MAX_THREADS_LIST = [1, 2, 4, 8, 16, 32, 64, 128]  # Test different thread counts
 
