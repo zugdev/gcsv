@@ -70,9 +70,11 @@ def gcsv_decompress(input_file, output_file):
         while not output_queue.empty():
             chunk_index, decompressed_data = output_queue.get()
             results[chunk_index] = decompressed_data  # Store in the correct position
+            print(f"decompressed chunk {chunk_index}: {len(decompressed_data)} bytes")
 
         for decompressed_data in results:
             f_out.write(decompressed_data)
+    print("done")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Decompress a GCSV file back to CSV.")
