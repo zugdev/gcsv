@@ -61,7 +61,6 @@ def gcsv_decompress(input_file, output_file):
     for thread in threads:
         thread.join()
 
-    # Write the decompressed chunks sequentially to the output file
     with open(output_file, 'wb') as f_out:
         # Create an empty list to store the decompressed chunks in proper order
         results = [None] * len(threads)
@@ -72,6 +71,7 @@ def gcsv_decompress(input_file, output_file):
             results[chunk_index] = decompressed_data  # Store in the correct position
             print(f"decompressed chunk {chunk_index}: {len(decompressed_data)} bytes")
 
+        # Write the decompressed chunks sequentially to the output file
         for decompressed_data in results:
             f_out.write(decompressed_data)
     print("done")
