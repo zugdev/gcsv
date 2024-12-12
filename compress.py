@@ -17,7 +17,7 @@ def gcsv_compress(input_file, output_file, chunk_size=10, max_threads=16):
     with open(input_file, 'rb') as f_in, open(output_file, 'wb') as f_out:
         # Create a thread pool where threads will pick tasks from
         with ThreadPoolExecutor() as executor:
-            print(f"compressing with {executor._max_workers} threads and {chunk_size} MB chunks with 4 bytes header per compressed block")
+            print(f"compressing with {executor._max_workers} max threads and {chunk_size} MB chunks with 4 bytes header per compressed block")
             executor._max_workers = max_threads  # Set the maximum number of threads to use
             futures = []  # We'll store futures (results) for each chunk compression task for post sequential writing
 
